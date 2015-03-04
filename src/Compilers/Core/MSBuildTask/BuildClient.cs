@@ -1,20 +1,22 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CompilerServer;
+using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
-using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
-using System.Collections.Immutable;
-using System.Reflection;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -35,15 +37,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static string GetExpectedServerExeDir()
         {
             var uri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
-            string assemblyPath;
-            if (uri.IsFile)
-            {
-                assemblyPath = uri.LocalPath;
-            }
-            else
-            {
-                assemblyPath = Assembly.GetCallingAssembly().Location;
-            }
+            string assemblyPath = uri.IsFile 
+                ? uri.LocalPath
+                : Assembly.GetCallingAssembly().Location;
             return Path.GetDirectoryName(assemblyPath);
         }
 
@@ -123,7 +119,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Returns null BuildResponse if no server response was received.
+        /// Returns a Task with a null BuildResponse if no server
+        /// response was received.
         /// </summary>
         public static Task<BuildResponse> TryRunServerCompilation(
             RequestLanguage language,
@@ -280,7 +277,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///
         /// This will return true if the pipe was disconnected.
         /// </summary>
-        private static async Task<bool> CreateMonitorDisconnectTask(
+        private static async Task CreateMonitorDisconnectTask(
             NamedPipeClientStream pipeStream,
             CancellationToken cancellationToken)
         {
@@ -297,16 +294,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
                     Log("After poking pipe.");
                 }
+                // Ignore cancellation
+                catch (OperationCanceledException) { }
                 catch (Exception e)
                 {
                     // It is okay for this call to fail.  Errors will be reflected in the 
                     // IsConnected property which will be read on the next iteration of the 
-                    // loop
                     LogException(e, "Error poking pipe");
                 }
             }
-
-            return !pipeStream.IsConnected;
         }
 
         /// <summary>
@@ -357,8 +353,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             Log("Process file path: {0}", fullFileName);
                         }
 
-                        if (fullFileName != null &&
-                            string.Equals(fullFileName,
+                        if (string.Equals(fullFileName,
                                           expectedPath,
                                           StringComparison.OrdinalIgnoreCase))
                         {
@@ -381,7 +376,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Connect to the given process id and return a pipe.
         /// Throws on cancellation.
         /// </summary>
-        /// <param name="processId">Proces id to try to connect to.</param>
+        /// <param name="processId">Process id to try to connect to.</param>
         /// <param name="timeoutMs">Timeout to allow in connecting to process.</param>
         /// <param name="cancellationToken">Cancellation token to cancel connection to server.</param>
         /// <returns>
@@ -447,7 +442,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             startInfo.dwFlags = STARTF_USESTDHANDLES;
             uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
 
-            PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
+            PROCESS_INFORMATION processInfo;
 
             Log("Attempting to create process '{0}'", expectedPath);
 

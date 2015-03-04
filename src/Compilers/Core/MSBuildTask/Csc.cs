@@ -157,9 +157,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.CSharpCompile;
 
+        private static string[] s_seperators = { "\r\n" };
+
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
-            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = output.Split(s_seperators, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
@@ -292,8 +294,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// list of aliases, and if any of the aliases specified is the string "global",
         /// then we add that reference to the command-line without an alias.
         /// </summary>
-        /// <param name="commandLine"></param>
-        /// <owner>RGoel</owner>
         private void AddReferencesToCommandLine
             (
             CommandLineBuilderExtension commandLine

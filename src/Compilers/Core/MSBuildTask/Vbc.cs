@@ -234,9 +234,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.VisualBasicCompile;
 
+        private static string[] s_separator = { "\r\n" };
+
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
-            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+            var lines = output.Split(s_separator, StringSplitOptions.None);
             foreach (string line in lines)
             {
                 //Code below will parse the set of four lines that comprise a VB
@@ -395,8 +397,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Looks at all the parameters that have been set, and builds up the string
         /// containing all the command-line switches.
         /// </summary>
-        /// <param name="commandLine"></param>
-        /// <owner>RGoel, JomoF</owner>
         protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());

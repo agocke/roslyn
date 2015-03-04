@@ -330,10 +330,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             base.Cancel();
 
-            if (_sharedCompileCts != null)
-            {
-                _sharedCompileCts.Cancel();
-            }
+            _sharedCompileCts?.Cancel();
         }
 
         /// <summary>
@@ -437,7 +434,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Get the command line arguments to pass to the compiler.
         /// </summary>
-        /// <returns></returns>
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
             CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
@@ -817,8 +813,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// This method will only be called during the initialization of the host object,
         /// which is only used during IDE builds.
         /// </summary>
-        /// <param name="noDefaultWin32Manifest"></param>
-        /// <param name="win32Manifest"></param>
         /// <returns>the path to the win32 manifest to provide to the host object</returns>
         internal string GetWin32ManifestSwitch
         (
