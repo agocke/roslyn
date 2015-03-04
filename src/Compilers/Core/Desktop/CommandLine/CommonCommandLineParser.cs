@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis
             {
                 const string keepAlive = "/keepalive";
                 var prefixLength = keepAlive.Length;
-                if (arg.StartsWith(keepAlive))
+                if (arg.StartsWith(keepAlive, StringComparison.Ordinal))
                 {
                     if (arg.Length < prefixLength + 2 ||
                         arg[prefixLength] != ':' &&

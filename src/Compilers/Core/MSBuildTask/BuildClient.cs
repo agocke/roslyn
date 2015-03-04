@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (errorMessage != null)
             {
                 Console.Out.WriteLine(errorMessage);
-                return 1;
+                return CommonCompiler.Failed;
             }
 
             var responseTask = TryRunServerCompilation(
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             else
             {
-                exitCode = fallbackCompiler(args.Where(arg => !arg.StartsWith("/keepalive")).ToArray());
+                exitCode = fallbackCompiler(args.Where(arg => !arg.StartsWith("/keepalive", StringComparison.Ordinal)).ToArray());
             }
 
             return exitCode;
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             else
             {
                 Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
-                return -1;
+                return CommonCompiler.Failed;
             }
         }
 
