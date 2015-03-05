@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -133,48 +132,57 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             var expectedServerExePath = Path.Combine(GetExpectedServerExeDir(), s_serverName);
             var mutexName = expectedServerExePath.Replace('\\', '/');
-            bool mutexCreated;
+            bool holdsMutex;
             using (var mutex = new Mutex(initiallyOwned: true,
                                          name: mutexName,
-                                         createdNew: out mutexCreated))
+                                         createdNew: out holdsMutex))
             {
-                var holdsMutex = mutexCreated;
-                if (!holdsMutex)
+                try
                 {
-                    try
-                    {
-                        holdsMutex = mutex.WaitOne(TimeOutMsNewProcess,
-                            exitContext: false);
-                    }
-                    catch (AbandonedMutexException)
-                    {
-                        holdsMutex = true;
-                    }
-                }
 
-                if (holdsMutex)
-                {
-                    var request = BuildRequest.Create(language, workingDir, Path.GetTempPath(), arguments, libEnvVariable);
-                    // Check for already running processes in case someone came in before us
-                    pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
-                    if (pipe != null)
+                    if (!holdsMutex)
                     {
-                        return TryCompile(pipe, request, cancellationToken);
-                    }
-                    else
-                    {
-                        int processId = TryCreateServerProcess(expectedServerExePath);
-                        if (processId != 0 &&
-                            null != (pipe = TryConnectToProcess(processId,
-                                                                TimeOutMsNewProcess,
-                                                                cancellationToken)))
+                        try
                         {
-                            // Let everyone else access our process
-                            mutex.ReleaseMutex();
-
-                            return TryCompile(pipe, request, cancellationToken);
+                            holdsMutex = mutex.WaitOne(TimeOutMsNewProcess,
+                                exitContext: false);
+                        }
+                        catch (AbandonedMutexException)
+                        {
+                            holdsMutex = true;
                         }
                     }
+
+                    if (holdsMutex)
+                    {
+                        var request = BuildRequest.Create(language, workingDir, Path.GetTempPath(), arguments, libEnvVariable);
+                        // Check for already running processes in case someone came in before us
+                        pipe = TryExistingProcesses(expectedServerExePath, cancellationToken);
+                        if (pipe != null)
+                        {
+                            return TryCompile(pipe, request, cancellationToken);
+                        }
+                        else
+                        {
+                            int processId = TryCreateServerProcess(expectedServerExePath);
+                            if (processId != 0 &&
+                                null != (pipe = TryConnectToProcess(processId,
+                                                                    TimeOutMsNewProcess,
+                                                                    cancellationToken)))
+                            {
+                                // Let everyone else access our process
+                                mutex.ReleaseMutex();
+                                holdsMutex = false;
+
+                                return TryCompile(pipe, request, cancellationToken);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    if (holdsMutex)
+                        mutex.ReleaseMutex();
                 }
             }
 
@@ -330,12 +338,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static IEnumerable<int> GetAllProcessIds(string expectedPath)
         {
             // Get all the processes with the right base name.
-            Process[] allProcesses = Process.GetProcessesByName(PipeName);
+            var allProcesses = Process.GetProcessesByName(PipeName);
             Log("Found {0} existing processes with matching base name", allProcesses.Length);
 
-            foreach (Process process in allProcesses)
+            try
             {
-                using (process)
+                foreach (Process process in allProcesses)
                 {
                     int processId = 0;
                     try
@@ -368,6 +376,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     if (processId != 0)
                         yield return processId;
+                }
+            }
+            finally
+            {
+                foreach (var p in allProcesses)
+                {
+                    p.Dispose();
                 }
             }
         }

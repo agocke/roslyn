@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var lengthBuffer = new byte[4];
             Log("Reading length of request");
             await ReadAllAsync(inStream,
-                                                      lengthBuffer,
-                                                      4,
-                                                      cancellationToken).ConfigureAwait(false);
+                               lengthBuffer,
+                               4,
+                               cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
 
             // Back out if the request is > 1MB
@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Log("Reading response of length {0}", length);
             var responseBuffer = new byte[length];
             await ReadAllAsync(stream,
-                               responseBuffer,
-                               responseBuffer.Length,
-                               cancellationToken).ConfigureAwait(false);
+                                                      responseBuffer,
+                                                      responseBuffer.Length,
+                                                      cancellationToken).ConfigureAwait(false);
 
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {

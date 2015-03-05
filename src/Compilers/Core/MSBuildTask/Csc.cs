@@ -157,11 +157,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.CSharpCompile;
 
-        private static string[] s_seperators = { "\r\n" };
+        private static string[] s_separators = { "\r\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
-            var lines = output.Split(s_seperators, StringSplitOptions.RemoveEmptyEntries);
+            var lines = output.Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
