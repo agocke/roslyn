@@ -462,7 +462,7 @@ End Class"
                 expr:="$ReturnValue(Of Object)",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            ' TODO (acasey): don't canonicalize name (GH #878)
+            ' TODO (https://github.com/dotnet/roslyn/issues/878): don't canonicalize name
             Assert.Equal("(1) : error BC32045: '$returnvalue' has no type parameters and so cannot have type arguments.", errorMessage)
 
             Const source = "
@@ -518,7 +518,7 @@ End Class
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="F(Function() If(o, $exception))")
-            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__1()").VerifyIL(
+            testData.GetMethodData("<>x._Closure$__0-0._Lambda$__0()").VerifyIL(
 "{
   // Code size       16 (0x10)
   .maxstack  2

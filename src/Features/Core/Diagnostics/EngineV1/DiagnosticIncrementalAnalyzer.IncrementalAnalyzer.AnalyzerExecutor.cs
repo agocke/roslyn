@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -117,21 +119,70 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var cancellationToken = analyzerDriver.CancellationToken;
 
                     var state = stateSet.GetState(StateType.Project);
-                    var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
+                    var existingData = await GetExistingProjectAnalysisDataAsync(project, state, cancellationToken).ConfigureAwait(false);
 
                     if (CheckSemanticVersions(project, existingData, versions))
                     {
                         return existingData;
                     }
 
-                    // TODO: remove ForceAnalyzeAllDocuments at some point
                     var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, stateSet.Analyzer, _owner.ForceAnalyzeAllDocuments).ConfigureAwait(false);
-                    return new AnalysisData(VersionStamp.Default, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
+                    return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private async Task<AnalysisData> GetExistingProjectAnalysisDataAsync(Project project, DiagnosticState state, CancellationToken cancellationToken)
+            {
+                // quick bail out
+                if (state.Count == 0)
+                {
+                    return null;
+                }
+
+                var textVersion = VersionStamp.Default;
+                var dataVersion = VersionStamp.Default;
+                var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
+
+                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                if (existingData != null)
+                {
+                    textVersion = existingData.TextVersion;
+                    dataVersion = existingData.DataVersion;
+
+                    builder.AddRange(existingData.Items);
+                }
+
+                foreach (var document in project.Documents)
+                {
+                    existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (existingData == null)
+                    {
+                        continue;
+                    }
+
+                    if (dataVersion != VersionStamp.Default && dataVersion != existingData.DataVersion)
+                    {
+                        continue;
+                    }
+
+                    textVersion = existingData.TextVersion;
+                    dataVersion = existingData.DataVersion;
+
+                    builder.AddRange(existingData.Items);
+                }
+
+                if (dataVersion == VersionStamp.Default)
+                {
+                    Contract.Requires(textVersion == VersionStamp.Default);
+                    return null;
+                }
+
+                Contract.Requires(textVersion != VersionStamp.Default);
+                return new AnalysisData(textVersion, dataVersion, builder.ToImmutable());
             }
 
             private bool CanUseDocumentState(AnalysisData existingData, VersionStamp textVersion, VersionStamp dataVersion)

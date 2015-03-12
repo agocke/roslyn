@@ -159,17 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsNotLambda(SyntaxNode node)
         {
-            return !IsLambda(node.Kind());
+            return !IsLambda(node);
         }
 
         public static bool IsLambda(SyntaxNode node)
         {
-            return IsLambda(node.Kind());
-        }
-
-        public static bool IsLambda(SyntaxKind kind)
-        {
-            switch (kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -184,8 +179,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.FromClause:
-                    // Although from clause only creates a lambda if it is in a query body,
-                    // for the purpose of node matching we consider all from clauses the same.
+                    // The first from clause of a query expression is not a lambda.
+                    return !node.Parent.IsKind(SyntaxKind.QueryExpression);
+            }
+
+            return false;
+        }
+
+        public static bool IsRangeVariableDeclarator(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.FromClause:
+                case SyntaxKind.JoinClause:
+                case SyntaxKind.LetClause:
+                case SyntaxKind.JoinIntoClause:
+                case SyntaxKind.QueryContinuation:
                     return true;
             }
 
@@ -206,13 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.FromClause:
-                    var fromClause = (FromClauseSyntax)node;
-                    if (!(fromClause.Parent is QueryBodySyntax))
+                    // The first from clause of a query expression is not a lambda.
+                    if (node.Parent.IsKind(SyntaxKind.QueryExpression))
                     {
                         return false;
                     }
 
-                    body1 = fromClause.Expression;
+                    body1 = ((FromClauseSyntax)node).Expression;
                     return true;
 
                 case SyntaxKind.JoinClause:

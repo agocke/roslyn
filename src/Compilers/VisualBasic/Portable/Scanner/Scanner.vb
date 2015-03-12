@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Delegate Function ScanTriviaFunc() As SyntaxList(Of VisualBasicSyntaxNode)
 
-        Private Shared ReadOnly _scanNoTriviaFunc As ScanTriviaFunc = Function() Nothing
+        Private Shared ReadOnly s_scanNoTriviaFunc As ScanTriviaFunc = Function() Nothing
         Private ReadOnly _scanSingleLineTriviaFunc As ScanTriviaFunc = AddressOf ScanSingleLineTrivia
 
         Protected _lineBufferOffset As Integer ' marks the next character to read from _buffer
@@ -38,48 +38,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' USE GetScratch() 
         ''' </summary>
         Private ReadOnly _sb As StringBuilder = _sbPooled.Builder
-        Private ReadOnly triviaListPool As New SyntaxListPool
+        Private ReadOnly _triviaListPool As New SyntaxListPool
         Private ReadOnly _options As VisualBasicParseOptions
 
         Private ReadOnly _stringTable As StringTable = StringTable.GetInstance()
         Private ReadOnly _quickTokenTable As TextKeyedCache(Of SyntaxToken) = TextKeyedCache(Of SyntaxToken).GetInstance
 
         Public Const TABLE_LIMIT = 512
-        Private Shared ReadOnly keywordKindFactory As Func(Of String, SyntaxKind) =
+        Private Shared ReadOnly s_keywordKindFactory As Func(Of String, SyntaxKind) =
             Function(spelling) KeywordTable.TokenOfString(spelling)
 
-        Private Shared ReadOnly _KeywordsObjsPool As ObjectPool(Of CachingIdentityFactory(Of String, SyntaxKind)) = CachingIdentityFactory(Of String, SyntaxKind).CreatePool(TABLE_LIMIT, keywordKindFactory)
-        Private ReadOnly _KeywordsObjs As CachingIdentityFactory(Of String, SyntaxKind) = _KeywordsObjsPool.Allocate()
+        Private Shared ReadOnly s_keywordsObjsPool As ObjectPool(Of CachingIdentityFactory(Of String, SyntaxKind)) = CachingIdentityFactory(Of String, SyntaxKind).CreatePool(TABLE_LIMIT, s_keywordKindFactory)
+        Private ReadOnly _KeywordsObjs As CachingIdentityFactory(Of String, SyntaxKind) = s_keywordsObjsPool.Allocate()
 
-        Private Shared ReadOnly _idTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, IdentifierTokenSyntax))(
-            Function() New CachingFactory(Of TokenParts, IdentifierTokenSyntax)(TABLE_LIMIT, Nothing, tokenKeyHasher, tokenKeyEquality))
+        Private Shared ReadOnly s_idTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, IdentifierTokenSyntax))(
+            Function() New CachingFactory(Of TokenParts, IdentifierTokenSyntax)(TABLE_LIMIT, Nothing, s_tokenKeyHasher, s_tokenKeyEquality))
 
-        Private ReadOnly _idTable As CachingFactory(Of TokenParts, IdentifierTokenSyntax) = _idTablePool.Allocate()
+        Private ReadOnly _idTable As CachingFactory(Of TokenParts, IdentifierTokenSyntax) = s_idTablePool.Allocate()
 
-        Private Shared ReadOnly _kwTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, KeywordSyntax))(
-            Function() New CachingFactory(Of TokenParts, KeywordSyntax)(TABLE_LIMIT, Nothing, tokenKeyHasher, tokenKeyEquality))
+        Private Shared ReadOnly s_kwTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, KeywordSyntax))(
+            Function() New CachingFactory(Of TokenParts, KeywordSyntax)(TABLE_LIMIT, Nothing, s_tokenKeyHasher, s_tokenKeyEquality))
 
-        Private ReadOnly _kwTable As CachingFactory(Of TokenParts, KeywordSyntax) = _kwTablePool.Allocate
+        Private ReadOnly _kwTable As CachingFactory(Of TokenParts, KeywordSyntax) = s_kwTablePool.Allocate
 
-        Private Shared ReadOnly _punctTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, PunctuationSyntax))(
-            Function() New CachingFactory(Of TokenParts, PunctuationSyntax)(TABLE_LIMIT, Nothing, tokenKeyHasher, tokenKeyEquality))
+        Private Shared ReadOnly s_punctTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, PunctuationSyntax))(
+            Function() New CachingFactory(Of TokenParts, PunctuationSyntax)(TABLE_LIMIT, Nothing, s_tokenKeyHasher, s_tokenKeyEquality))
 
-        Private ReadOnly _punctTable As CachingFactory(Of TokenParts, PunctuationSyntax) = _punctTablePool.Allocate()
+        Private ReadOnly _punctTable As CachingFactory(Of TokenParts, PunctuationSyntax) = s_punctTablePool.Allocate()
 
-        Private Shared ReadOnly _literalTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, SyntaxToken))(
-            Function() New CachingFactory(Of TokenParts, SyntaxToken)(TABLE_LIMIT, Nothing, tokenKeyHasher, tokenKeyEquality))
+        Private Shared ReadOnly s_literalTablePool As New ObjectPool(Of CachingFactory(Of TokenParts, SyntaxToken))(
+            Function() New CachingFactory(Of TokenParts, SyntaxToken)(TABLE_LIMIT, Nothing, s_tokenKeyHasher, s_tokenKeyEquality))
 
-        Private ReadOnly _literalTable As CachingFactory(Of TokenParts, SyntaxToken) = _literalTablePool.Allocate
+        Private ReadOnly _literalTable As CachingFactory(Of TokenParts, SyntaxToken) = s_literalTablePool.Allocate
 
-        Private Shared ReadOnly _wslTablePool As New ObjectPool(Of CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)))(
-            Function() New CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode))(TABLE_LIMIT, wsListFactory, wsListKeyHasher, wsListKeyEquality))
+        Private Shared ReadOnly s_wslTablePool As New ObjectPool(Of CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)))(
+            Function() New CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode))(TABLE_LIMIT, s_wsListFactory, s_wsListKeyHasher, s_wsListKeyEquality))
 
-        Private ReadOnly _wslTable As CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)) = _wslTablePool.Allocate
+        Private ReadOnly _wslTable As CachingFactory(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)) = s_wslTablePool.Allocate
 
-        Private Shared ReadOnly _wsTablePool As New ObjectPool(Of CachingFactory(Of TriviaKey, SyntaxTrivia))(
+        Private Shared ReadOnly s_wsTablePool As New ObjectPool(Of CachingFactory(Of TriviaKey, SyntaxTrivia))(
             Function() CreateWsTable())
 
-        Private ReadOnly _wsTable As CachingFactory(Of TriviaKey, SyntaxTrivia) = _wsTablePool.Allocate
+        Private ReadOnly _wsTable As CachingFactory(Of TriviaKey, SyntaxTrivia) = s_wsTablePool.Allocate
 
         Private ReadOnly _isScanningForExpressionCompiler As Boolean
 
@@ -117,12 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _stringTable.Free()
                 _sbPooled.Free()
 
-                _idTablePool.Free(_idTable)
-                _kwTablePool.Free(_kwTable)
-                _punctTablePool.Free(_punctTable)
-                _literalTablePool.Free(_literalTable)
-                _wslTablePool.Free(_wslTable)
-                _wsTablePool.Free(_wsTable)
+                s_idTablePool.Free(_idTable)
+                s_kwTablePool.Free(_kwTable)
+                s_punctTablePool.Free(_punctTable)
+                s_literalTablePool.Free(_literalTable)
+                s_wslTablePool.Free(_wslTable)
+                s_wsTablePool.Free(_wsTable)
 
                 For Each p As Page In Me._pages
                     If p IsNot Nothing Then
@@ -389,6 +389,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
 #Region "Buffer helpers"
+
+        Private Function NextAre(offset As Integer, chars As String) As Boolean
+            Debug.Assert(Not String.IsNullOrEmpty(chars))
+            Dim n = chars.Length
+            If Not CanGetCharAtOffset(offset + n) Then Return False
+            For i = 0 To n - 1
+                If chars(i) <> PeekAheadChar(offset + i) Then Return False
+            Next
+            Return True
+        End Function
+
         Private Function CanGetChar() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
@@ -581,12 +592,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return Nothing
             End If
 
-            Dim triviaList = triviaListPool.Allocate()
+            Dim triviaList = _triviaListPool.Allocate()
             While TryScanSinglePieceOfMultilineTrivia(triviaList)
             End While
 
             Dim result = MakeTriviaArray(triviaList)
-            triviaListPool.Free(triviaList)
+            _triviaListPool.Free(triviaList)
             Return result
         End Function
 
@@ -680,10 +691,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' EoL may be consumed as whitespace only as a part of line continuation ( _ )
         ''' </summary>
         Friend Function ScanSingleLineTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
-            Dim tList = triviaListPool.Allocate()
+            Dim tList = _triviaListPool.Allocate()
             ScanSingleLineTrivia(tList)
             Dim result = MakeTriviaArray(tList)
-            triviaListPool.Free(tList)
+            _triviaListPool.Free(tList)
             Return result
         End Function
 
@@ -705,10 +716,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim offsets = CreateOffsetRestorePoint()
-                        Dim triviaList = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
+                        Dim triviaList = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, triviaList)
                         If Not continueLine Then
-                            triviaListPool.Free(triviaList)
+                            _triviaListPool.Free(triviaList)
                             offsets.Restore()
                             Return
                         End If
@@ -716,17 +727,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         For i = 0 To triviaList.Count - 1
                             tList.Add(triviaList(i))
                         Next
-                        triviaListPool.Free(triviaList)
+                        _triviaListPool.Free(triviaList)
 
                 End Select
             End If
         End Sub
 
         Private Function ScanLeadingTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
-            Dim tList = triviaListPool.Allocate()
+            Dim tList = _triviaListPool.Allocate()
             ScanWhitespaceAndLineContinuations(tList)
             Dim result = MakeTriviaArray(tList)
-            triviaListPool.Free(tList)
+            _triviaListPool.Free(tList)
             Return result
         End Function
 
@@ -740,11 +751,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function ScanSingleLineTrivia(includeFollowingBlankLines As Boolean) As SyntaxList(Of VisualBasicSyntaxNode)
-            Dim tList = triviaListPool.Allocate()
+            Dim tList = _triviaListPool.Allocate()
             ScanSingleLineTrivia(tList)
 
             If includeFollowingBlankLines AndAlso IsBlankLine(tList) Then
-                Dim more = triviaListPool.Allocate()
+                Dim more = _triviaListPool.Allocate()
 
                 While True
                     Dim offsets = CreateOffsetRestorePoint()
@@ -764,11 +775,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     more.Clear()
                 End While
 
-                triviaListPool.Free(more)
+                _triviaListPool.Free(more)
             End If
 
             Dim result = tList.ToList()
-            triviaListPool.Free(tList)
+            _triviaListPool.Free(tList)
             Return result
         End Function
 
@@ -1109,9 +1120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanStringLiteral(precedingTrivia)
 
                 Case "A"c
-                    If CanGetCharAtOffset(2) AndAlso
-                       PeekAheadChar(1) = "s"c AndAlso
-                       PeekAheadChar(2) = " "c Then
+                    If NextAre(1, "s ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "As"
@@ -1122,10 +1131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "E"c
-                    If CanGetCharAtOffset(3) AndAlso
-                        PeekAheadChar(1) = "n"c AndAlso
-                        PeekAheadChar(2) = "d"c AndAlso
-                        PeekAheadChar(3) = " "c Then
+                    If NextAre(1, "nd ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "End"
@@ -1136,9 +1142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "I"c
-                    If CanGetCharAtOffset(2) AndAlso
-                                           PeekAheadChar(1) = "f"c AndAlso
-                                           PeekAheadChar(2) = " "c Then
+                    If NextAre(1, "f ") Then
 
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = "If"
@@ -1148,9 +1152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
-                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c,
-                        "m"c, "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c,
-                        "y"c, "z"c
+                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
+                     "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
@@ -1347,10 +1350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanStringLiteral(precedingTrivia)
 
                 Case "A"c
-                    If CanGetCharAtOffset(2) AndAlso
-                       PeekAheadChar(1) = "s"c AndAlso
-                       PeekAheadChar(2) = " "c Then
-
+                    If NextAre(1, "s ") Then
                         Dim spelling = GetText(2)
                         Return MakeKeyword(SyntaxKind.AsKeyword, spelling, precedingTrivia)
                     Else
@@ -1358,11 +1358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "E"c
-                    If CanGetCharAtOffset(3) AndAlso
-                        PeekAheadChar(1) = "n"c AndAlso
-                        PeekAheadChar(2) = "d"c AndAlso
-                        PeekAheadChar(3) = " "c Then
-
+                    If NextAre(1, "nd ") Then
                         Dim spelling = GetText(3)
                         Return MakeKeyword(SyntaxKind.EndKeyword, spelling, precedingTrivia)
                     Else
@@ -1370,10 +1366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "I"c
-                    If CanGetCharAtOffset(2) AndAlso
-                                           PeekAheadChar(1) = "f"c AndAlso
-                                           PeekAheadChar(2) = " "c Then
-
+                    If NextAre(1, "f ") Then
                         ' TODO: do we allow widechars in keywords?
                         Dim spelling = GetText(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, spelling, precedingTrivia)
@@ -1381,9 +1374,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
-                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c,
-                        "m"c, "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c,
-                        "y"c, "z"c
+                Case "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c, "m"c,
+                     "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c, "y"c, "z"c
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "B"c, "C"c, "D"c, "F"c, "G"c, "H"c, "J"c, "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c,
@@ -1496,13 +1488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
                                     End If
                                 Case "["c
-                                    If CanGetCharAtOffset(length + 8) AndAlso
-                                        PeekAheadChar(length + 2) = "C"c AndAlso
-                                        PeekAheadChar(length + 3) = "D"c AndAlso
-                                        PeekAheadChar(length + 4) = "A"c AndAlso
-                                        PeekAheadChar(length + 5) = "T"c AndAlso
-                                        PeekAheadChar(length + 6) = "A"c AndAlso
-                                        PeekAheadChar(length + 7) = "["c Then
+
+                                    If NextAre(length + 2, "CDATA[") Then
 
                                         Return XmlMakeBeginCDataToken(precedingTrivia, scanTrailingTrivia)
                                     End If
@@ -2579,7 +2566,7 @@ baddate:
                     ' NATURAL TEXT, NO INTERNING
                     Return SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
-                ElseIf Me.IsScanningDirective AndAlso IsNewLine(ch) Then
+                ElseIf Me._isScanningDirective AndAlso IsNewLine(ch) Then
                     Exit While
                 End If
 

@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly CancellationToken _cancellationToken;
         private readonly ISyntaxNodeAnalyzerService _syntaxNodeAnalyzerService;
-        private readonly Dictionary<SyntaxNode, ImmutableArray<SyntaxNode>> _descendantExecutableNodesMap;
-        private readonly ISyntaxFactsService _syntaxFacts;
         private readonly IGeneratedCodeRecognitionService _generatedCodeService;
         private readonly IAnalyzerDriverService _analyzerDriverService;
 
@@ -74,8 +72,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _syntaxNodeAnalyzerService = syntaxNodeAnalyzerService;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _cancellationToken = cancellationToken;
-            _descendantExecutableNodesMap = new Dictionary<SyntaxNode, ImmutableArray<SyntaxNode>>();
-            _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             _generatedCodeService = document.Project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             _analyzerDriverService = document.Project.LanguageServices.GetService<IAnalyzerDriverService>();
             _analyzerOptions = new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace);
@@ -97,8 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _generatedCodeService = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             _analyzerDriverService = project.LanguageServices.GetService<IAnalyzerDriverService>();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _descendantExecutableNodesMap = null;
-            _analyzerOptions = _project.AnalyzerOptions;
+            _analyzerOptions = new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace);
             _onAnalyzerException = overriddenOnAnalyzerException ?? Default_OnAnalyzerException;
             _onAnalyzerException_NoTelemetryLogging = overriddenOnAnalyzerException ?? Default_OnAnalyzerException_NoTelemetryLogging;
         }
@@ -265,8 +260,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         await documentAnalyzer.AnalyzeSyntaxAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
                         return diagnostics.ToImmutableArrayOrEmpty();
                     }
-                    catch (Exception e)
-                        {
+                    catch (Exception e) when (!AnalyzerExecutor.IsCanceled(e, _cancellationToken))
+                    {
                         OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
                     }
@@ -314,12 +309,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
         {
-            var exceptionDiagnostic = AnalyzerExceptionToDiagnostic(analyzer, ex, _cancellationToken);
-
+            var exceptionDiagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
+            
             if (compilation != null)
             {
                 exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
-                }
+            }
 
             _onAnalyzerException(ex, analyzer, exceptionDiagnostic);
         }
@@ -380,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         await documentAnalyzer.AnalyzeSemanticsAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (!AnalyzerExecutor.IsCanceled(e, _cancellationToken))
                     {
                         OnAnalyzerException(e, analyzer, compilation);
                         return ImmutableArray<Diagnostic>.Empty;
@@ -413,8 +408,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                                 this.SyntaxNodeAnalyzerService.ExecuteSyntaxNodeActions(analyzerActions, GetSyntaxNodesToAnalyze(), model, analyzerExecutor);
                             }
 
-                            // CodeBlockStart, CodeBlockEnd, and generated SyntaxNode actions.
-                            if (analyzerActions.CodeBlockStartActionsCount > 0 || analyzerActions.CodeBlockEndActionsCount > 0)
+                            // CodeBlockStart, CodeBlock, CodeBlockEnd, and generated SyntaxNode actions.
+                            if (analyzerActions.CodeBlockStartActionsCount > 0 || analyzerActions.CodeBlockActionsCount > 0 || analyzerActions.CodeBlockEndActionsCount > 0)
                             {
                                 this.SyntaxNodeAnalyzerService.ExecuteCodeBlockActions(analyzerActions, this.GetDeclarationInfos(model), model, analyzerExecutor);
                             }
@@ -456,12 +451,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e)
+            catch (Exception e) when (!AnalyzerExecutor.IsCanceled(e, _cancellationToken))
             {
-                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 OnAnalyzerException(e, analyzer, compilation);
-                }
             }
+        }
 
         private async Task GetCompilationDiagnosticsAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics, Action<Project, DiagnosticAnalyzer, CancellationToken> forceAnalyzeAllDocuments)
         {
@@ -479,34 +474,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (hasDependentCompilationEndAction && forceAnalyzeAllDocuments != null)
                 {
-                    // Analyzer registered a compilation end action and at least one other analyzer action during it's compilation start action.
+                    // Analyzer registered a compilation end action and at least one other analyzer action during its compilation start action.
                     // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
                     forceAnalyzeAllDocuments(_project, analyzer, _cancellationToken);
                 }
 
+                // Compilation actions.
+                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationActions);
+
                 // CompilationEnd actions.
-                analyzerExecutor.ExecuteCompilationEndActions(analyzerActions);
+                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationEndActions);
 
                 var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
                 diagnostics.AddRange(filteredDiagnostics);
             }
-        }
-
-        private static Diagnostic AnalyzerExceptionToDiagnostic(DiagnosticAnalyzer analyzer, Exception e, CancellationToken cancellationToken)
-        {
-            if (!IsCanceled(e, cancellationToken))
-            {
-                // Create a info diagnostic saying that the analyzer failed
-                return AnalyzerExecutor.GetAnalyzerDiagnostic(analyzer, e);
-            }
-
-            return null;
-        }
-
-        private static bool IsCanceled(Exception e, CancellationToken cancellationToken)
-        {
-            var canceled = e as OperationCanceledException;
-            return canceled != null && canceled.CancellationToken == cancellationToken;
         }
 
         private void Default_OnAnalyzerException_NoTelemetryLogging(Exception e, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

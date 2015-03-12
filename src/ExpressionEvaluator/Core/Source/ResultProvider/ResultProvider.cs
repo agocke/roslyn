@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// <remarks>
     /// This class provides implementation for the default ResultProvider component.
     /// </remarks>
-    internal abstract class ResultProvider : IDkmClrResultProvider
+    public abstract class ResultProvider : IDkmClrResultProvider
     {
         internal readonly Formatter Formatter;
 
@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         Type: null,
                         DataItem: null));
                     break;
+                case ExpansionKind.NativeView:
                 case ExpansionKind.NonPublicMembers:
                 case ExpansionKind.StaticMembers:
                     completionRoutine(CreateEvaluationResult(
@@ -213,6 +214,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ErrorMessage: display,
                     Flags: dataItem.Flags,
                     Type: typeName,
+                    DataItem: dataItem);
+            }
+            else if (dataItem.Kind == ExpansionKind.NativeView)
+            {
+                // For Native View, create a DkmIntermediateEvaluationResult.  This will allow the C++ EE
+                // to take over expansion.
+                DkmProcess process = inspectionContext.RuntimeInstance.Process;
+                DkmLanguage cpp = process.EngineSettings.GetLanguage(new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp));
+                return DkmIntermediateEvaluationResult.Create(
+                    InspectionContext: inspectionContext,
+                    StackFrame: value.StackFrame,
+                    Name: Resources.NativeView,
+                    FullName: dataItem.FullName,
+                    Expression: dataItem.Name,
+                    IntermediateLanguage: cpp,
+                    TargetRuntime: process.GetNativeRuntimeInstance(),
                     DataItem: dataItem);
             }
             else
@@ -364,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 inspectionContext: inspectionContext);
         }
 
-        private void GetRootResultAndContinue(DkmClrValue value, WorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, string resultName, CompletionRoutine<DkmEvaluationResult> completionRoutine)
+        private void GetRootResultAndContinue(DkmClrValue value, WorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, string name, CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var type = value.Type.GetLmrType();
             if (type.IsTypeVariables())
@@ -372,7 +389,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var expansion = new TypeVariablesExpansion(type);
                 var dataItem = new EvalResultDataItem(
                     ExpansionKind.Default,
-                    resultName,
+                    name,
                     typeDeclaringMember: null,
                     declaredType: type,
                     parent: null,
@@ -410,12 +427,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ExternalModules: null,
                     DataItem: dataItem));
             }
+            else if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ResultsOnly) != 0)
+            {
+                CreateEvaluationResultAndContinue(
+                    ResultsViewExpansion.CreateResultsOnlyRow(inspectionContext, name, declaredType, value, this.Formatter), 
+                    workList,
+                    inspectionContext,
+                    value.StackFrame,
+                    completionRoutine);
+            }
             else
             {
-                if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ResultsOnly) != 0)
+                var dataItem = ResultsViewExpansion.CreateResultsOnlyRowIfSynthesizedEnumerable(inspectionContext, name, declaredType, value, this.Formatter);
+                if (dataItem != null)
                 {
                     CreateEvaluationResultAndContinue(
-                        ResultsViewExpansion.CreateResultsOnlyRow(inspectionContext, resultName, declaredType, value, null, this.Formatter),
+                        dataItem,
                         workList,
                         inspectionContext,
                         value.StackFrame,
@@ -424,10 +451,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 else
                 {
                     ReadOnlyCollection<string> formatSpecifiers;
-                    var fullName = this.Formatter.TrimAndGetFormatSpecifiers(resultName, out formatSpecifiers);
-                    var dataItem = CreateDataItem(
+                    var fullName = this.Formatter.TrimAndGetFormatSpecifiers(name, out formatSpecifiers);
+                    dataItem = CreateDataItem(
                         inspectionContext,
-                        resultName,
+                        name,
                         typeDeclaringMember: null,
                         declaredType: declaredType.GetLmrType(),
                         value: value,
@@ -617,14 +644,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         () =>
                         {
                             results[index] = result;
-                            if (index < numRows - 1)
-                            {
-                                GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine);
-                            }
-                            else
-                            {
-                                completionRoutine();
-                            }
+                            GetEvaluationResultsAndContinue(rows, results, index + 1, numRows, workList, inspectionContext, stackFrame, completionRoutine);
                         }));
             }
             else

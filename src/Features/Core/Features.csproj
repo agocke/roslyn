@@ -184,6 +184,7 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.HostStates.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.ProjectStates.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateSet.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetLatestDiagnosticsForSpan.cs" />
     <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
@@ -217,6 +218,7 @@
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />
+    <Compile Include="EditAndContinue\BidirectionalMap.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>

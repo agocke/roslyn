@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptions();
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SyntaxNode node, Encoding encoding);
+        SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root);
 
         // new tree from text
         SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
 
         // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, SyntaxNode root);
+        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
 
         SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }

@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 var unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
-                Assert.Equal("type DogBed", itemDisplay.AdditionalInformation);
+                Assert.Equal($"{EditorFeaturesResources.Type}DogBed", itemDisplay.AdditionalInformation);
                 _glyphServiceMock.Verify();
 
                 item = items.ElementAt(1);
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("M").Single();
-                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName: "M()", additionalInfo: "type A<T>.B.C<U>");
+                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName: "M()", additionalInfo: $"{EditorFeaturesResources.Type}A<T>.B.C<U>");
             }
         }
 
@@ -855,7 +855,7 @@ class D
                 Assert.Equal(expectedItem.IsCaseSensitive, actualItem.IsCaseSensitive);
                 if (!string.IsNullOrEmpty(expectedItem.SecondarySort))
                 {
-                    Assert.Contains(expectedItem.SecondarySort, actualItem.SecondarySort);
+                    Assert.Contains(expectedItem.SecondarySort, actualItem.SecondarySort, StringComparison.Ordinal);
                 }
             }
         }

@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Overrides ReadOnly Property ErrorCodeType As Type
+        Public Overrides ReadOnly Property ErrorCodeType As Type
             Get
                 Return GetType(ERRID)
             End Get
@@ -227,6 +227,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_CantReadRulesetFile As Integer
             Get
                 Return ERRID.ERR_CantReadRulesetFile
+            End Get
+        End Property
+
+        ' compilation options:
+
+        Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer
+            Get
+                Return ERRID.ERR_InvalidSwitchValue
             End Get
         End Property
 

@@ -109,6 +109,7 @@
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
     <Compile Include="Collections\StaticCast.cs" />
+    <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
@@ -174,7 +175,6 @@
     <Compile Include="Diagnostic\CommonDiagnosticComparer.cs" />
     <Compile Include="Diagnostic\CommonMessageProvider.cs" />
     <Compile Include="Diagnostic\Diagnostic.cs" />
-    <Compile Include="Diagnostic\TriggerDiagnosticDescriptor.cs" />
     <Compile Include="Diagnostic\WellKnownDiagnosticTags.cs" />
     <Compile Include="Diagnostic\Diagnostic_SimpleDiagnostic.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContext.cs" />
@@ -234,10 +234,6 @@
     <Compile Include="Emit\SemanticEdit.cs" />
     <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
-    <Compile Include="Instrumentation\FunctionId.cs" />
-    <Compile Include="Instrumentation\Logger.cs" />
-    <Compile Include="Instrumentation\PerformanceGoals.cs" />
-    <Compile Include="Instrumentation\RoslynCompilerEventSource.cs" />
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\FatalError.cs" />
