@@ -19,20 +19,20 @@
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
-    <!-- 
+    <!--
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'net5'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
-      When building a .NET Core exe make sure to include the template runtimeconfig.json file 
-      which has all of our global settings 
+      When building a .NET Core exe make sure to include the template runtimeconfig.json file
+      which has all of our global settings
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
 
     <!--
-      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s).
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
     -->
@@ -61,7 +61,7 @@
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
@@ -81,7 +81,7 @@
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->
   <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true'">
@@ -157,10 +157,10 @@
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
       <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
     </CompareVersions>
-  
+
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
-  </Target> 
+  </Target>
 
   <Target Name="DisableAnalyzers"
           BeforeTargets="CoreCompile"
@@ -173,9 +173,9 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
-    This target is used to copy referenced projects to a sub-directory vs. the direct output 
-    directory of the build. Useful when the referenced project is an EXE and the referencing 
+  <!--
+    This target is used to copy referenced projects to a sub-directory vs. the direct output
+    directory of the build. Useful when the referenced project is an EXE and the referencing
     project uses an incompatible TargetFramework (e.g. CommandLineTest -> csc/vbc)
   -->
   <Target Name="CopyReferencedProjectsToDependenciesDirectory" Condition="'@(RoslynReferenceToDependencyDirectory)' != ''" AfterTargets="ResolveProjectReferences">
@@ -188,11 +188,11 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
     https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
     isn't fully supported yet in the new project system. Removal of this hack is tracked
-    by https://github.com/dotnet/roslyn/issues/19545. 
+    by https://github.com/dotnet/roslyn/issues/19545.
   -->
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
@@ -203,7 +203,7 @@
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
-  <!-- 
+  <!--
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
@@ -213,8 +213,8 @@
   <!--
     Append common text to package specific PackageDescription.
   -->
-  <Target Name="_AppendCommonPackageDescription" 
-          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
+  <Target Name="_AppendCommonPackageDescription"
+          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec"
           DependsOnTargets="InitializeSourceControlInformation"
           Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <PropertyGroup>
@@ -236,13 +236,13 @@
   </ItemGroup>
 
   <!--
-    Default settings for analyzer packages.    
+    Default settings for analyzer packages.
   -->
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <!-- Analyzer packages should not have any dependencies. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="all"/>
@@ -349,7 +349,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
   -->
   <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
