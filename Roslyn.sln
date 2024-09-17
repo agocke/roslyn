@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31319.15
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -558,6 +558,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SemanticSearch.ReferenceAssemblies", "src\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj", "{EDEF898A-CEFA-4151-8168-D0231A602093}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SemanticSearch.BuildTask.UnitTests", "src\Tools\SemanticSearch\Tests\SemanticSearch.BuildTask.UnitTests.csproj", "{D817E3CE-F603-499B-B02A-7DECD017B170}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{85CA96A9-3F74-4114-BEEF-0B970D56211B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workspaces", "Workspaces", "{A2812564-B6AA-4799-AF84-6F866A90A409}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Workspaces.CscWorkspace", "src\Workspaces\CscWorkspace\Microsoft.CodeAnalysis.Workspaces.CscWorkspace.csproj", "{7591FFBD-85E1-4260-9182-0BD6E9421ABD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Workspaces.CscWorkspace.UnitTests", "src\Workspaces\CscWorkspaceTest\Microsoft.CodeAnalysis.Workspaces.CscWorkspace.UnitTests.csproj", "{3AC757E7-16E2-4BAE-82BF-D0880F571CC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1385,6 +1393,14 @@ Global
 		{D817E3CE-F603-499B-B02A-7DECD017B170}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D817E3CE-F603-499B-B02A-7DECD017B170}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D817E3CE-F603-499B-B02A-7DECD017B170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7591FFBD-85E1-4260-9182-0BD6E9421ABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7591FFBD-85E1-4260-9182-0BD6E9421ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7591FFBD-85E1-4260-9182-0BD6E9421ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7591FFBD-85E1-4260-9182-0BD6E9421ABD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AC757E7-16E2-4BAE-82BF-D0880F571CC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AC757E7-16E2-4BAE-82BF-D0880F571CC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AC757E7-16E2-4BAE-82BF-D0880F571CC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AC757E7-16E2-4BAE-82BF-D0880F571CC7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1642,6 +1658,9 @@ Global
 		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
 		{EDEF898A-CEFA-4151-8168-D0231A602093} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
 		{D817E3CE-F603-499B-B02A-7DECD017B170} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
+		{A2812564-B6AA-4799-AF84-6F866A90A409} = {85CA96A9-3F74-4114-BEEF-0B970D56211B}
+		{7591FFBD-85E1-4260-9182-0BD6E9421ABD} = {A2812564-B6AA-4799-AF84-6F866A90A409}
+		{3AC757E7-16E2-4BAE-82BF-D0880F571CC7} = {A2812564-B6AA-4799-AF84-6F866A90A409}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
