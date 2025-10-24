@@ -1431,8 +1431,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
         /// <returns>True if this visited all of the statements</returns>
         /// <remarks>
-        /// The operation being visited is not necessarily equal to statements[startIndex]. 
-        /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
+        /// The operation being visited is not necessarily equal to statements[startIndex].
+        /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label
         /// as we haven't actually moved down the original statement list
         /// </remarks>
         private bool VisitStatementsOneOrAll(IOperation? operation, ImmutableArray<IOperation> statements, int startIndex)

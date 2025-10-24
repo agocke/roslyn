@@ -58,31 +58,31 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// <summary>
         /// Gets the <see cref="ISymbolInternal"/> for the immediately containing symbol.
         /// </summary>
-        ISymbolInternal ContainingSymbol { get; }
+        ISymbolInternal? ContainingSymbol { get; }
 
         /// <summary>
         /// Gets the <see cref="IAssemblySymbolInternal"/> for the containing assembly. Returns null if the
         /// symbol is shared across multiple assemblies.
         /// </summary>
-        IAssemblySymbolInternal ContainingAssembly { get; }
+        IAssemblySymbolInternal? ContainingAssembly { get; }
 
         /// <summary>
         /// Gets the <see cref="IModuleSymbolInternal"/> for the containing module. Returns null if the
         /// symbol is shared across multiple modules.
         /// </summary>
-        IModuleSymbolInternal ContainingModule { get; }
+        IModuleSymbolInternal? ContainingModule { get; }
 
         /// <summary>
         /// Gets the <see cref="INamedTypeSymbolInternal"/> for the containing type. Returns null if the
         /// symbol is not contained within a type.
         /// </summary>
-        INamedTypeSymbolInternal ContainingType { get; }
+        INamedTypeSymbolInternal? ContainingType { get; }
 
         /// <summary>
         /// Gets the <see cref="INamespaceSymbolInternal"/> for the nearest enclosing namespace. Returns null if the
         /// symbol isn't contained in a namespace.
         /// </summary>
-        INamespaceSymbolInternal ContainingNamespace { get; }
+        INamespaceSymbolInternal? ContainingNamespace { get; }
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false
@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.Symbols
 
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
+        /// an explicit corresponding source code declaration.
+        /// </summary>
         /// <remarks>
         /// This is intended for symbols that are ordinary symbols in the language sense, and may be
         /// used by code, but that are simply declared implicitly rather than with explicit language
         /// syntax.
-        /// 
+        ///
         /// <para>
         /// Examples include (this list is not exhaustive):
         /// <list type="bullet">

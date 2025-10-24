@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
             Debug.Assert(enumType.EnumUnderlyingType is not null);
 
-            // Code copied from System.Enum            
+            // Code copied from System.Enum
             var isFlagsEnum = IsFlagsEnum(enumType);
             if (isFlagsEnum)
             {
@@ -193,12 +193,15 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 if (ctor != null)
                 {
                     var type = ctor.ContainingType;
-                    if (!ctor.Parameters.Any() && type.Name == "FlagsAttribute")
+                    if (!ctor.Parameters.Any() && type?.Name == "FlagsAttribute")
                     {
                         var containingSymbol = type.ContainingSymbol;
-                        if (containingSymbol.Kind == SymbolKind.Namespace &&
-                            containingSymbol.Name == "System" &&
-                            ((INamespaceSymbol)containingSymbol.ContainingSymbol).IsGlobalNamespace)
+                        if (containingSymbol is
+                            {
+                                Kind: SymbolKind.Namespace,
+                                Name: "System",
+                                ContainingSymbol: INamespaceSymbol { IsGlobalNamespace: true }
+                            })
                         {
                             return true;
                         }

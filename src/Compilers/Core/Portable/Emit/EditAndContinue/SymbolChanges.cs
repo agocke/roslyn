@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly DefinitionMap _definitionMap;
 
         /// <summary>
-        /// Contains all symbols from the current compilation that were explicitly updated/added to the source and 
+        /// Contains all symbols from the current compilation that were explicitly updated/added to the source and
         /// their containing types and namespaces.
         /// </summary>
         private readonly IReadOnlyDictionary<ISymbolInternal, SymbolChange> _changes;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// True if the symbol is a source symbol added during EnC session. 
+        /// True if the symbol is a source symbol added during EnC session.
         /// The symbol may be declared in any source compilation in the current solution.
         /// </summary>
         public bool IsAdded(ISymbol symbol)
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         // The existing symbol should be reused when the generator is updated,
                         // not updated since it's form doesn't depend on the content of the generator.
-                        // For example, when an iterator method changes all methods that implement IEnumerable 
+                        // For example, when an iterator method changes all methods that implement IEnumerable
                         // but MoveNext can be reused as they are.
                         if (!synthesizedSymbol.HasMethodBodyDependency)
                         {
@@ -343,8 +343,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Calculate the set of changes up to top-level types. The result
         /// will be used as a filter when traversing the module.
-        /// 
-        /// Note that these changes only include user-defined source symbols, not synthesized symbols since those will be 
+        ///
+        /// Note that these changes only include user-defined source symbols, not synthesized symbols since those will be
         /// generated during lowering of the changed user-defined symbols.
         /// </summary>
         private void CalculateChanges(

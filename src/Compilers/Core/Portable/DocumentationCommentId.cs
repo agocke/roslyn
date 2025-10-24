@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             var p = parameters[i];
-                            this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
+                            this.GetReferenceGenerator(p.ContainingSymbol!).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
                                 _builder.Append('@');
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis
                                         parameters.Clear();
                                     }
 
-                                    if (ParseParameterList(id, ref index, compilation, propertySymbol.ContainingSymbol, parameters)
+                                    if (ParseParameterList(id, ref index, compilation, propertySymbol.ContainingSymbol!, parameters)
                                         && AllParametersMatch(propertySymbol.Parameters, parameters))
                                     {
                                         results.Add(propertySymbol);
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis
                 var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
                 {
-                    return GetNthTypeParameter(typeSymbol.ContainingType, n);
+                    return GetNthTypeParameter(typeSymbol.ContainingType!, n);
                 }
 
                 var index = n - containingTypeParameterCount;
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
+            private static int GetTypeParameterCount(INamedTypeSymbol? typeSymbol)
             {
                 if (typeSymbol == null)
                 {
