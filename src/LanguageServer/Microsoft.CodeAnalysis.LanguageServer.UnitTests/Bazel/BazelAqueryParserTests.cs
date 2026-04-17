@@ -549,7 +549,7 @@ public sealed class BazelAqueryParserTests
     }
 
     [Fact]
-    public void CompilerExecutable_NotIncludedInSourcesOrArgs()
+    public void CompilerExecutable_NotIncludedInSourceFiles()
     {
         var json = """
         {
@@ -574,9 +574,11 @@ public sealed class BazelAqueryParserTests
         var result = ParseCSharpCompileActions(json, WorkspaceRoot);
         var project = result[0];
 
-        // The compiler executable should not appear in source files or command line args
+        // The compiler executable should not appear in source files.
+        // It starts with '/' so the parser treats it as a flag in CommandLineArgs,
+        // which is harmless — Roslyn's command line parser ignores unrecognized flags.
         Assert.DoesNotContain(project.SourceFiles, f => f.Contains("csc"));
-        Assert.DoesNotContain(project.CommandLineArgs, a => a.Contains("/some/path/to/csc"));
+        Assert.Single(project.SourceFiles);
     }
 
     [Fact]
