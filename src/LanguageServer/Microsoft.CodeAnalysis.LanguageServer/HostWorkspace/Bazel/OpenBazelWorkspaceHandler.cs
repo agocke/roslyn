@@ -32,12 +32,14 @@ internal sealed class OpenBazelWorkspaceHandler : ILspServiceNotificationHandler
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(
         NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
+        var isOnDemand = string.Equals(request.LoadingStrategy, "onDemand", StringComparison.OrdinalIgnoreCase);
         return _bazelProjectSystem.OpenWorkspaceAsync(
             request.WorkspaceRoot,
             request.BazelPath ?? "bazel",
             request.Config,
             request.Targets is not null ? [.. request.Targets] : ImmutableArray<string>.Empty,
             request.StartupFlags is not null ? [.. request.StartupFlags] : ImmutableArray<string>.Empty,
+            isOnDemand,
             cancellationToken);
     }
 
@@ -57,5 +59,8 @@ internal sealed class OpenBazelWorkspaceHandler : ILspServiceNotificationHandler
 
         [JsonPropertyName("startupFlags")]
         public string[]? StartupFlags { get; set; }
+
+        [JsonPropertyName("loadingStrategy")]
+        public string? LoadingStrategy { get; set; }
     }
 }
