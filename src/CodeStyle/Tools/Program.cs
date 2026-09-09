@@ -203,13 +203,24 @@ public static class Program
     {
         var directory = Directory.CreateDirectory(outputDir);
         var fileWithPath = Path.Combine(directory.FullName, targetsFileName);
-        File.WriteAllText(fileWithPath, $@"<Project>{GetTargetContents(language)}
+        var globalConfigAssets = new StringBuilder();
+        foreach (var analysisMode in Enum.GetValues<AnalysisMode>())
+        {
+            globalConfigAssets.AppendLine(
+                $"""    <_GlobalAnalyzerConfigAsset_MicrosoftCodeAnalysis{language}CodeStyle Include="$(MSBuildThisFileDirectory)config\analysislevelstyle_{analysisMode.ToString().ToLowerInvariant()}.globalconfig" />""");
+        }
+
+        File.WriteAllText(fileWithPath, $@"<Project>{GetTargetContents(language, globalConfigAssets.ToString().TrimEnd())}
 </Project>");
         return;
 
-        static string GetTargetContents(string language)
+        static string GetTargetContents(string language, string globalConfigAssets)
         {
             return $"""
+
+                  <ItemGroup>
+                {globalConfigAssets}
+                  </ItemGroup>
 
                   <Target Name="AddGlobalAnalyzerConfigForPackage_MicrosoftCodeAnalysis{language}CodeStyle" BeforeTargets="GenerateMSBuildEditorConfigFileCore;CoreCompile" Condition="'$(SkipGlobalAnalyzerConfigForPackage)' != 'true'">
                     <!-- PropertyGroup to compute global analyzer config file to be used -->
@@ -263,13 +274,24 @@ public static class Program
                       <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>AnalysisLevelStyle_$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle).globalconfig</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
                       <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle.ToLowerInvariant())</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
 
+                      <_UseDeclaredGlobalAnalyzerConfigs_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">true</_UseDeclaredGlobalAnalyzerConfigs_MicrosoftCodeAnalysis{language}CodeStyle>
                       <_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">$(MSBuildThisFileDirectory)config</_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle>
                       <_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)' != ''">$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)\$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)</_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle>
                     </PropertyGroup>
 
                     <!-- Add the analyzer configuration. -->
-                    <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and '$(_IncludeStyleConfiguration)' == 'true'">
+                    <ItemGroup Condition="('$(MSBuildHardenedGraph)' != 'true' or '$(_UseDeclaredGlobalAnalyzerConfigs_MicrosoftCodeAnalysis{language}CodeStyle)' != 'true') and
+                                           Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and
+                                           '$(_IncludeStyleConfiguration)' == 'true'">
                       <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
+                    </ItemGroup>
+
+                    <ItemGroup Condition="'$(MSBuildHardenedGraph)' == 'true' and
+                                           '$(_UseDeclaredGlobalAnalyzerConfigs_MicrosoftCodeAnalysis{language}CodeStyle)' == 'true' and
+                                           '$(_IncludeStyleConfiguration)' == 'true'">
+                      <EditorConfigFiles
+                          Include="@(_GlobalAnalyzerConfigAsset_MicrosoftCodeAnalysis{language}CodeStyle)"
+                          Condition="'%(_GlobalAnalyzerConfigAsset_MicrosoftCodeAnalysis{language}CodeStyle.Filename)%(_GlobalAnalyzerConfigAsset_MicrosoftCodeAnalysis{language}CodeStyle.Extension)' == '$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)'" />
                     </ItemGroup>
 
                     <!-- Pass the MSBuild property values for 'EffectiveAnalysisLevelStyle' and 'EnableCodeStyleSeverity' to the analyzers via analyzer config options. -->
