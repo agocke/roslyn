@@ -67,6 +67,19 @@
     -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName).dll" />
 
+    <!-- Hardened builds use a stable semaphore input whose timestamp advances only after a skipped-analyzer compilation. -->
+    <Target Name="_InitializeLastBuildWithSkipAnalyzers"
+            BeforeTargets="_ComputeSkipAnalyzers"
+            Condition="'$(MSBuildHardenedGraph)' == 'true'">
+    <WriteLinesToFile
+      File="$(IntermediateOutputPath)$(MSBuildProjectFile).BuildWithSkipAnalyzers"
+      Lines=""
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true"
+      DeclaredInputs="$(IntermediateOutputPath)$(MSBuildProjectFile).BuildWithSkipAnalyzers"
+      DeclaredOutputs="$(IntermediateOutputPath)$(MSBuildProjectFile).BuildWithSkipAnalyzers" />
+  </Target>
+
   <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
     <!-- First, force clear non-user facing properties '_SkipAnalyzers' and '_ImplicitlySkipAnalyzers'. -->
     <PropertyGroup>
@@ -118,7 +131,12 @@
 	       Additionally, we need to pass this file as an 'UpToDateCheckInput' item with 'Kind = ImplicitBuild' for project system's fast-upto-date check to work correctly.
 		     See https://github.com/dotnet/project-system/issues/7290 for details.
 	  -->
-    <ItemGroup Condition="Exists('$(_LastBuildWithSkipAnalyzers)') and '$(_SkipAnalyzers)' != 'true'">
+    <ItemGroup Condition="'$(MSBuildHardenedGraph)' != 'true' and Exists('$(_LastBuildWithSkipAnalyzers)') and '$(_SkipAnalyzers)' != 'true'">
+      <CustomAdditionalCompileInputs Include="$(_LastBuildWithSkipAnalyzers)"/>
+      <UpToDateCheckInput Include="$(_LastBuildWithSkipAnalyzers)" Kind="ImplicitBuild"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(MSBuildHardenedGraph)' == 'true' and '$(_SkipAnalyzers)' != 'true'">
       <CustomAdditionalCompileInputs Include="$(_LastBuildWithSkipAnalyzers)"/>
       <UpToDateCheckInput Include="$(_LastBuildWithSkipAnalyzers)" Kind="ImplicitBuild"/>
     </ItemGroup>
