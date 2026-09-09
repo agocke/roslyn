@@ -31,6 +31,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                $" SourceLinkUrl='{sourceRoot.GetMetadata("SourceLinkUrl")}'";
 
         [Fact]
+        public void IsPureTask()
+        {
+            Assert.Contains(
+                typeof(MapSourceRoots).GetCustomAttributes(inherit: false),
+                attribute => attribute.GetType().FullName == "Microsoft.Build.Framework.MSBuildPureTaskAttribute");
+        }
+
+        [Fact]
         public void BasicMapping()
         {
             var engine = new MockEngine();

@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// The <c>MappedPath</c> is either the path (ItemSpec) itself, when <see cref="Deterministic"/> is false, 
     /// or a calculated deterministic source path (starting with prefix '/_/', '/_1/', etc.), otherwise.
     /// </remarks>
+    [MSBuildPureTask]
     [MSBuildMultiThreadableTask]
     public sealed class MapSourceRoots : Task, IMultiThreadableTask
     {
