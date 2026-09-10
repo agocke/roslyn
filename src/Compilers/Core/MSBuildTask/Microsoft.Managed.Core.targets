@@ -55,10 +55,6 @@
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
     </ItemGroup>
 
-    <PropertyGroup Condition="'$(UseSharedCompilation)' == '' AND '$(MSBuildTaskCacheDirectory)' != ''">
-      <UseSharedCompilation>false</UseSharedCompilation>
-    </PropertyGroup>
-
     <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>

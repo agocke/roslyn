@@ -9,12 +9,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     [MSBuildMultiThreadableTask]
     [MSBuildDeclaredIOTask]
     [MSBuildDeclaredIORequiresUnset(nameof(AdditionalLibPaths))]
-    [MSBuildDeclaredIORequiresUnset(nameof(CodeAnalysisRuleSet))]
     [MSBuildDeclaredIORequiresUnset(nameof(Deterministic))]
     [MSBuildDeclaredIORequiresUnset(nameof(EnvironmentVariables))]
     [MSBuildDeclaredIORequiresUnset(nameof(ErrorLog))]
     [MSBuildDeclaredIORequiresUnset(nameof(FailIfNotIncremental))]
-    [MSBuildDeclaredIORequiresUnset(nameof(Features))]
     [MSBuildDeclaredIORequiresUnset(nameof(GeneratedFilesOutputPath))]
     [MSBuildDeclaredIORequiresUnset(nameof(KeyContainer))]
     [MSBuildDeclaredIORequiresUnset(nameof(NoConfig))]
@@ -27,7 +25,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     [MSBuildDeclaredIORequiresUnset(nameof(ToolPath))]
     [MSBuildDeclaredIORequiresUnset(nameof(UseCommandProcessor))]
     [MSBuildDeclaredIORequiresUnset(nameof(UseHostCompilerIfAvailable))]
-    [MSBuildDeclaredIORequiresUnset(nameof(UseSharedCompilation))]
     [MSBuildDeclaredIORequiresUnset(nameof(VsSessionGuid))]
     public sealed class DeclaredIOCsc : Csc
     {
@@ -36,7 +33,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             Deterministic = true;
             NoConfig = true;
             UseHostCompilerIfAvailable = false;
-            UseSharedCompilation = false;
         }
 
         public ITaskItem[]? DeclaredInputs { get; set; }

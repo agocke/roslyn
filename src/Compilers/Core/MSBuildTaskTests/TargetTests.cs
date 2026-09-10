@@ -521,8 +521,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         [Theory]
         [InlineData("", "true")]
-        [InlineData("cache", "false")]
-        public void TaskCacheDefaultsToLocalCompilation(string cacheDirectory, string expected)
+        [InlineData("cache", "true")]
+        public void TaskCacheUsesDefaultSharedCompilation(string cacheDirectory, string expected)
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($"""
 <Project>
@@ -540,19 +540,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Theory]
-        [InlineData("", "true")]
-        [InlineData("rules.ruleset", "false")]
-        public void TaskCacheUsesDeclaredIOCscOnlyForSupportedConfigurations(string ruleSet, string expected)
+        [InlineData("cache", "", "", true, "", "true")]
+        [InlineData("", "true", "", true, "", "true")]
+        [InlineData("", "false", "", true, "", "false")]
+        [InlineData("cache", "", "", false, "", "true")]
+        [InlineData("cache", "", "lib", true, "", "false")]
+        [InlineData("cache", "", "", true, "custom-pipe", "false")]
+        public void TaskCacheUsesDeclaredIOCscOnlyForSupportedConfigurations(
+            string cacheDirectory,
+            string cacheEnabled,
+            string additionalLibPaths,
+            bool useSharedCompilation,
+            string sharedCompilationId,
+            string expected)
         {
             string inputPath = typeof(TargetTests).Assembly.Location;
             string outputPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
             XmlReader xmlReader = XmlReader.Create(new StringReader($"""
 <Project>
     <PropertyGroup>
-        <MSBuildTaskCacheDirectory>cache</MSBuildTaskCacheDirectory>
+        <MSBuildTaskCacheDirectory>{cacheDirectory}</MSBuildTaskCacheDirectory>
+        <MSBuildTaskCacheEnabled>{cacheEnabled}</MSBuildTaskCacheEnabled>
         <Deterministic>true</Deterministic>
-        <UseSharedCompilation>false</UseSharedCompilation>
-        <ResolvedCodeAnalysisRuleSet>{ruleSet}</ResolvedCodeAnalysisRuleSet>
+        <AdditionalLibPaths>{additionalLibPaths}</AdditionalLibPaths>
+        <UseSharedCompilation>{useSharedCompilation}</UseSharedCompilation>
+        <SharedCompilationId>{sharedCompilationId}</SharedCompilationId>
     </PropertyGroup>
     <ItemGroup>
         <_CoreCompileResourceInputs Include="resource" WithCulture="true" />

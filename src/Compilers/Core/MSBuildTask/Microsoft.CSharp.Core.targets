@@ -93,7 +93,7 @@
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(_DebugSymbolsProduced)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
 
       <_UseDeclaredIOCsc>false</_UseDeclaredIOCsc>
-      <_UseDeclaredIOCsc Condition="'$(MSBuildTaskCacheDirectory)' != '' AND
+      <_UseDeclaredIOCsc Condition="('$(MSBuildTaskCacheDirectory)' != '' OR '$(MSBuildTaskCacheEnabled)' == 'true') AND
                                     '$(MSBuildRuntimeType)' == 'Core' AND
                                     '$(DesignTimeBuild)' != 'true' AND
                                     '$(BuildingInsideVisualStudio)' != 'true' AND
@@ -105,12 +105,10 @@
                                     '$(CscToolExe)' == '' AND
                                     '$(CscToolPath)' == '' AND
                                     '$(ErrorLog)' == '' AND
-                                    '$(Features)' == '' AND
                                     '$(KeyContainerName)' == '' AND
                                     '$(ProvideCommandLineArgs)' != 'true' AND
-                                    '$(ResolvedCodeAnalysisRuleSet)' == '' AND
+                                    '$(SharedCompilationId)' == '' AND
                                     '$(SkipCompilerExecution)' != 'true' AND
-                                    '$(UseSharedCompilation)' != 'true' AND
                                     '$(VsSessionGuid)' == ''">true</_UseDeclaredIOCsc>
     </PropertyGroup>
 
@@ -122,6 +120,11 @@
       <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\csc.runtimeconfig.json" />
       <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\Microsoft.CodeAnalysis.dll" />
       <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\Microsoft.CodeAnalysis.CSharp.dll" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\VBCSCompiler" Condition="'$(UseSharedCompilation)' == 'true'" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\VBCSCompiler.exe" Condition="'$(UseSharedCompilation)' == 'true'" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\VBCSCompiler.dll" Condition="'$(UseSharedCompilation)' == 'true'" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\VBCSCompiler.deps.json" Condition="'$(UseSharedCompilation)' == 'true'" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\VBCSCompiler.runtimeconfig.json" Condition="'$(UseSharedCompilation)' == 'true'" />
       <_DeclaredIOCscToolchainInput Include="$(DOTNET_HOST_PATH)" />
 
       <_DeclaredIOCscResourceCulture Include="cs;de;es;fr;it;ja;ko;pl;pt-BR;ru;tr;zh-Hans;zh-Hant" />
@@ -228,6 +231,7 @@
          BaseAddress="$(BaseAddress)"
          CheckForOverflowUnderflow="$(CheckForOverflowUnderflow)"
          ChecksumAlgorithm="$(ChecksumAlgorithm)"
+         CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
          CodePage="$(CodePage)"
          DebugType="$(DebugType)"
          DefineConstants="$(DefineConstants)"
@@ -243,6 +247,7 @@
          InterceptorsNamespaces="$(InterceptorsNamespaces)"
          InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
+         Features="$(Features)"
          GenerateFullPaths="$(GenerateFullPaths)"
          HighEntropyVA="$(HighEntropyVA)"
          Instrument="$(Instrument)"
@@ -276,6 +281,7 @@
          TargetType="$(OutputType)"
          TargetFramework="$(TargetFramework)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+         UseSharedCompilation="$(UseSharedCompilation)"
          Utf8Output="$(Utf8Output)"
          WarningLevel="$(WarningLevel)"
          WarningsAsErrors="$(WarningsAsErrors)"
@@ -300,6 +306,7 @@
                          $(KeyOriginatorFile);
                          $(Win32Resource);
                          $(Win32Manifest);
+                         $(ResolvedCodeAnalysisRuleSet);
                          $(SourceLink);
                          @(_DeclaredIOCscToolchainInput)"
          DeclaredOutputs="@(DocFileItem);

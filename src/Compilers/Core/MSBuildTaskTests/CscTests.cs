@@ -102,12 +102,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal(
                 [
                     "AdditionalLibPaths",
-                    "CodeAnalysisRuleSet",
                     "Deterministic",
                     "EnvironmentVariables",
                     "ErrorLog",
                     "FailIfNotIncremental",
-                    "Features",
                     "GeneratedFilesOutputPath",
                     "KeyContainer",
                     "NoConfig",
@@ -120,7 +118,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     "ToolPath",
                     "UseCommandProcessor",
                     "UseHostCompilerIfAvailable",
-                    "UseSharedCompilation",
                     "VsSessionGuid",
                 ],
                 requiredUnsetParameters);
