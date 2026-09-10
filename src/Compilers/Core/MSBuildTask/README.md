@@ -45,3 +45,9 @@ There are several places in the .NET SDK props / targets where the full path of 
 The SDK will be responsible for setting this when `$(RoslynCompilerType)` is `Core`, `Framework` or `FrameworkPackage`. Packages which use `Custom` to override the compiler will need to set this to the proper location.
 
 Note: `$(RoslynTasksAssembly)` is **not** guaranteed to be set in non-SDK scenarios as there is only a single task there.
+
+## Declared-I/O compiler caching
+
+When `MSBuildTaskCacheDirectory` is nonempty, supported deterministic C# compilations use `DeclaredIOCsc`. The task declares compiler inputs, toolchain files, and compiler outputs so an MSBuild engine that supports declared-I/O result caching can restore a previous compilation result.
+
+Shared compilation is disabled by default in this mode. Configurations that require dynamic input discovery or otherwise cannot satisfy the declared-I/O contract continue to use the ordinary `Csc` task.

@@ -519,6 +519,56 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("7.3", publicMaxLangVersion);
         }
 
+        [Theory]
+        [InlineData("", "true")]
+        [InlineData("cache", "false")]
+        public void TaskCacheDefaultsToLocalCompilation(string cacheDirectory, string expected)
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($"""
+<Project>
+    <PropertyGroup>
+        <MSBuildTaskCacheDirectory>{cacheDirectory}</MSBuildTaskCacheDirectory>
+    </PropertyGroup>
+    <Import Project="Microsoft.Managed.Core.targets" />
+</Project>
+"""));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            Assert.True(instance.Build(target: "_BeforeVBCSCoreCompile", GetTestLoggers()));
+            Assert.Equal(expected, instance.GetPropertyValue("UseSharedCompilation"));
+        }
+
+        [Theory]
+        [InlineData("", "true")]
+        [InlineData("rules.ruleset", "false")]
+        public void TaskCacheUsesDeclaredIOCscOnlyForSupportedConfigurations(string ruleSet, string expected)
+        {
+            string inputPath = typeof(TargetTests).Assembly.Location;
+            string outputPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            XmlReader xmlReader = XmlReader.Create(new StringReader($"""
+<Project>
+    <PropertyGroup>
+        <MSBuildTaskCacheDirectory>cache</MSBuildTaskCacheDirectory>
+        <Deterministic>true</Deterministic>
+        <UseSharedCompilation>false</UseSharedCompilation>
+        <ResolvedCodeAnalysisRuleSet>{ruleSet}</ResolvedCodeAnalysisRuleSet>
+    </PropertyGroup>
+    <ItemGroup>
+        <_CoreCompileResourceInputs Include="resource" WithCulture="true" />
+        <CustomAdditionalCompileInputs Include="{inputPath}" />
+        <CustomAdditionalCompileOutputs Include="{outputPath}" />
+    </ItemGroup>
+    <Import Project="Microsoft.CSharp.Core.targets" />
+</Project>
+"""));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            Assert.True(instance.Build(target: "CoreCompile", GetTestLoggers()));
+            Assert.Equal(expected, instance.GetPropertyValue("_UseDeclaredIOCsc"));
+        }
+
         [Fact]
         public void GenerateEditorConfigIsPassedToTheCompiler()
         {

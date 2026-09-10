@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -70,6 +71,74 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void DeclaredIOCscUsesFixedDeterministicExecutionMode()
+        {
+            var csc = new DeclaredIOCsc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            Assert.True(csc.Deterministic);
+            Assert.True(csc.NoConfig);
+            Assert.False(csc.UseHostCompilerIfAvailable);
+            Assert.False(csc.UseSharedCompilation);
+            Assert.Equal("/noconfig", csc.GenerateToolArguments());
+            Assert.Equal("/out:test.exe /deterministic+ test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void DeclaredIOCscContractRejectsNonStaticInputDiscoveryModes()
+        {
+            string[] requiredUnsetParameters = typeof(DeclaredIOCsc)
+                .CustomAttributes
+                .Where(static attribute => attribute.AttributeType.FullName == "Microsoft.Build.Framework.MSBuildDeclaredIORequiresUnsetAttribute")
+                .Select(static attribute => (string)attribute.ConstructorArguments[0].Value!)
+                .OrderBy(static parameter => parameter, StringComparer.Ordinal)
+                .ToArray();
+
+            Assert.Equal(
+                [
+                    "AdditionalLibPaths",
+                    "CodeAnalysisRuleSet",
+                    "Deterministic",
+                    "EnvironmentVariables",
+                    "ErrorLog",
+                    "FailIfNotIncremental",
+                    "Features",
+                    "GeneratedFilesOutputPath",
+                    "KeyContainer",
+                    "NoConfig",
+                    "ProvideCommandLineArgs",
+                    "ResponseFiles",
+                    "SharedCompilationId",
+                    "SkipCompilerExecution",
+                    "Timeout",
+                    "ToolExe",
+                    "ToolPath",
+                    "UseCommandProcessor",
+                    "UseHostCompilerIfAvailable",
+                    "UseSharedCompilation",
+                    "VsSessionGuid",
+                ],
+                requiredUnsetParameters);
+        }
+
+        [Fact]
+        public void DeclaredIOCscExposesDeclaredPathLists()
+        {
+            var inputs = MSBuildUtil.CreateTaskItems("input.cs", "reference.dll");
+            var outputs = MSBuildUtil.CreateTaskItems("output.dll", "output.pdb");
+            var csc = new DeclaredIOCsc
+            {
+                DeclaredInputs = inputs,
+                DeclaredOutputs = outputs,
+            };
+
+            Assert.Same(inputs, csc.DeclaredInputs);
+            Assert.Same(outputs, csc.DeclaredOutputs);
         }
 
         [Fact]

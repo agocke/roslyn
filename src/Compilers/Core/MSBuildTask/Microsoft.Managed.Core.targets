@@ -12,6 +12,7 @@
     Common targets for managed compilers.
   -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName).dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.DeclaredIOCsc" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName).dll" />
 
   <Import Project="Microsoft.Managed.Core.CurrentVersions.targets" />
 
@@ -53,6 +54,10 @@
       <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
       <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
     </ItemGroup>
+
+    <PropertyGroup Condition="'$(UseSharedCompilation)' == '' AND '$(MSBuildTaskCacheDirectory)' != ''">
+      <UseSharedCompilation>false</UseSharedCompilation>
+    </PropertyGroup>
 
     <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
       <UseSharedCompilation>true</UseSharedCompilation>

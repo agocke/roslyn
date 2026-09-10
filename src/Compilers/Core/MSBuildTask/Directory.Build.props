@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CopyRefAssembly.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Csc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Csi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeclaredIOCsc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMSBuildEditorConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IAnalyzerConfigFilesHostObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ICompilerOptionsHostObject.cs" />
@@ -42,6 +43,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ManagedCompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ManagedToolTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MapSourceRoots.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MSBuildDeclaredIORequiresUnsetAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MSBuildDeclaredIOTaskAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MvidReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />

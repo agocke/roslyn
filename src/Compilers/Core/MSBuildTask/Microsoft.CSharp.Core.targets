@@ -91,10 +91,46 @@
 
       <!-- If we are targeting winmdobj we want to specifically the pdbFile property since we do not want it to collide with the output of winmdexp-->
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(_DebugSymbolsProduced)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
+
+      <_UseDeclaredIOCsc>false</_UseDeclaredIOCsc>
+      <_UseDeclaredIOCsc Condition="'$(MSBuildTaskCacheDirectory)' != '' AND
+                                    '$(MSBuildRuntimeType)' == 'Core' AND
+                                    '$(DesignTimeBuild)' != 'true' AND
+                                    '$(BuildingInsideVisualStudio)' != 'true' AND
+                                    '$(Deterministic)' == 'true' AND
+                                    '$(AdditionalLibPaths)' == '' AND
+                                    '@(CompilerResponseFile)' == '' AND
+                                    '$(CompilerGeneratedFilesOutputPath)' == '' AND
+                                    '$(CscEnvironment)' == '' AND
+                                    '$(CscToolExe)' == '' AND
+                                    '$(CscToolPath)' == '' AND
+                                    '$(ErrorLog)' == '' AND
+                                    '$(Features)' == '' AND
+                                    '$(KeyContainerName)' == '' AND
+                                    '$(ProvideCommandLineArgs)' != 'true' AND
+                                    '$(ResolvedCodeAnalysisRuleSet)' == '' AND
+                                    '$(SkipCompilerExecution)' != 'true' AND
+                                    '$(UseSharedCompilation)' != 'true' AND
+                                    '$(VsSessionGuid)' == ''">true</_UseDeclaredIOCsc>
     </PropertyGroup>
 
+    <ItemGroup Condition="'$(_UseDeclaredIOCsc)' == 'true'">
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\csc" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\csc.exe" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\csc.dll" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\csc.deps.json" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\csc.runtimeconfig.json" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\Microsoft.CodeAnalysis.dll" />
+      <_DeclaredIOCscToolchainInput Include="$(_BuildTasksDirectory)bincore\Microsoft.CodeAnalysis.CSharp.dll" />
+      <_DeclaredIOCscToolchainInput Include="$(DOTNET_HOST_PATH)" />
+
+      <_DeclaredIOCscResourceCulture Include="cs;de;es;fr;it;ja;ko;pl;pt-BR;ru;tr;zh-Hans;zh-Hant" />
+      <_DeclaredIOCscToolchainInput Include="@(_DeclaredIOCscResourceCulture->'$(_BuildTasksDirectory)bincore\%(Identity)\Microsoft.CodeAnalysis.resources.dll')" />
+      <_DeclaredIOCscToolchainInput Include="@(_DeclaredIOCscResourceCulture->'$(_BuildTasksDirectory)bincore\%(Identity)\Microsoft.CodeAnalysis.CSharp.resources.dll')" />
+    </ItemGroup>
+
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
-    <Csc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true'"
+    <Csc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true' AND '$(_UseDeclaredIOCsc)' != 'true'"
          AdditionalLibPaths="$(AdditionalLibPaths)"
          AddModules="@(AddModules)"
          AdditionalFiles="@(AdditionalFiles)"
@@ -181,6 +217,95 @@
          SourceLink="$(SourceLink)">
       <Output TaskParameter="CommandLineArgs" ItemName="CscCommandLineArgs" />
     </Csc>
+
+    <DeclaredIOCsc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true' AND '$(_UseDeclaredIOCsc)' == 'true'"
+         AddModules="@(AddModules)"
+         AdditionalFiles="@(AdditionalFiles)"
+         AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
+         AnalyzerConfigFiles="@(EditorConfigFiles)"
+         Analyzers="@(Analyzer)"
+         ApplicationConfiguration="$(AppConfigForCompiler)"
+         BaseAddress="$(BaseAddress)"
+         CheckForOverflowUnderflow="$(CheckForOverflowUnderflow)"
+         ChecksumAlgorithm="$(ChecksumAlgorithm)"
+         CodePage="$(CodePage)"
+         DebugType="$(DebugType)"
+         DefineConstants="$(DefineConstants)"
+         DelaySign="$(DelaySign)"
+         DisabledWarnings="$(NoWarn)"
+         DisableSdkPath="$(DisableSdkPath)"
+         DocumentationFile="@(DocFileItem)"
+         EmbedAllSources="$(EmbedAllSources)"
+         EmbeddedFiles="@(EmbeddedFiles)"
+         EmitDebugInformation="$(DebugSymbols)"
+         ErrorEndLocation="$(ErrorEndLocation)"
+         ErrorReport="$(ErrorReport)"
+         InterceptorsNamespaces="$(InterceptorsNamespaces)"
+         InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
+         FileAlignment="$(FileAlignment)"
+         GenerateFullPaths="$(GenerateFullPaths)"
+         HighEntropyVA="$(HighEntropyVA)"
+         Instrument="$(Instrument)"
+         KeyFile="$(KeyOriginatorFile)"
+         LangVersion="$(LangVersion)"
+         LinkResources="@(LinkResource)"
+         MainEntryPoint="$(StartupObject)"
+         ModuleAssemblyName="$(ModuleAssemblyName)"
+         NoLogo="$(NoLogo)"
+         NoStandardLib="$(NoCompilerStandardLib)"
+         NoWin32Manifest="$(NoWin32Manifest)"
+         Nullable="$(Nullable)"
+         Optimize="$(Optimize)"
+         PublicSign="$(PublicSign)"
+         OutputAssembly="@(IntermediateAssembly)"
+         OutputRefAssembly="@(IntermediateRefAssembly)"
+         PdbFile="$(PdbFile)"
+         Platform="$(PlatformTarget)"
+         Prefer32Bit="$(Prefer32Bit)"
+         PreferredUILang="$(PreferredUILang)"
+         ProjectName="$(MSBuildProjectName)"
+         References="@(ReferencePathWithRefAssemblies)"
+         RefOnly="$(ProduceOnlyReferenceAssembly)"
+         ReportAnalyzer="$(ReportAnalyzer)"
+         ReportIVTs="$(ReportIVTs)"
+         Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
+         RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
+         SkipAnalyzers="$(_SkipAnalyzers)"
+         Sources="@(Compile)"
+         SubsystemVersion="$(SubsystemVersion)"
+         TargetType="$(OutputType)"
+         TargetFramework="$(TargetFramework)"
+         TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+         Utf8Output="$(Utf8Output)"
+         WarningLevel="$(WarningLevel)"
+         WarningsAsErrors="$(WarningsAsErrors)"
+         WarningsNotAsErrors="$(WarningsNotAsErrors)"
+         Win32Icon="$(ApplicationIcon)"
+         Win32Manifest="$(Win32Manifest)"
+         Win32Resource="$(Win32Resource)"
+         PathMap="$(PathMap)"
+         SourceLink="$(SourceLink)"
+         DeclaredInputs="@(Compile);
+                         @(AddModules);
+                         @(AdditionalFiles);
+                         @(Analyzer);
+                         @(EditorConfigFiles);
+                         @(ReferencePathWithRefAssemblies);
+                         @(_CoreCompileResourceInputs);
+                         @(CompiledLicenseFile);
+                         @(LinkResource);
+                         @(EmbeddedFiles);
+                         $(AppConfigForCompiler);
+                         $(ApplicationIcon);
+                         $(KeyOriginatorFile);
+                         $(Win32Resource);
+                         $(Win32Manifest);
+                         $(SourceLink);
+                         @(_DeclaredIOCscToolchainInput)"
+         DeclaredOutputs="@(DocFileItem);
+                          @(IntermediateAssembly);
+                          @(IntermediateRefAssembly);
+                          @(_DebugSymbolsIntermediatePath)" />
 
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
