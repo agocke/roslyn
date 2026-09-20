@@ -933,6 +933,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             // create a dummy WriteLinesToFile task
             addTask(proj, "WriteLinesToFile", new()
             {
+                { "DeclaredInputs", "Microsoft.Build.Framework.ITaskItem[]" },
+                { "DeclaredOutputs", "Microsoft.Build.Framework.ITaskItem[]" },
                 { "Lines", "System.String[]" },
                 { "File", "System.String" },
                 { "Overwrite", "System.Boolean" },
